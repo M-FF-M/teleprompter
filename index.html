@@ -69,6 +69,9 @@
         <div id="s_mirrorh" class="s_item"><div class="s_flex">
           <div class="s_icon" id="s_mirrorh_icon"><img src="icons/mirrorh-white.svg" class="s_img" id="s_mirrorh_img" /></div><span class="s_text">Mirror Horizontally</span>
         </div></div>
+        <div id="s_showrec" class="s_item"><div class="s_flex">
+          <div class="s_icon" id="s_showrec_icon"><img src="icons/showrec-white.svg" class="s_img" id="s_showrec_img" /></div><span class="s_text">Show Recorded Text</span>
+        </div></div>
         <div id="s_clear" class="s_item"><div class="s_flex">
           <div class="s_icon" id="s_clear_icon"><img src="icons/clear-white.svg" class="s_img" id="s_clear_img" /></div><span class="s_text">Clear Settings</span>
         </div></div>
@@ -88,6 +91,24 @@
 
     <div id="play_div"><span id="play_text"></span></div>
     <div id="edit_text_div"><div id="text_editor_container"><textarea id="text_editor" cols="80" rows="50"></textarea></div></div>
+    <div id="rec_text">
+      <div class="txt_cmp_header">
+        Looking for:&nbsp;<br />
+        Recognized:&nbsp;
+      </div>
+      <div class="txt_cmp_content">
+        <span id="disconnected_texts">
+          <span id="looking_for"></span><br />
+          <span id="recorded"></span>
+        </span>
+        <span id="connected_texts"></span>
+      </div>
+      <div class="txt_cmp_settings">
+        <img src="icons/previous-white.svg" class="txt_cmp_icon" id="prev" />
+        <img src="icons/next-white.svg" class="txt_cmp_icon" id="next" />
+        <img src="icons/last-white.svg" class="txt_cmp_icon" id="last" />
+      </div>
+    </div>
   </div>
 
 </body>

@@ -2,13 +2,13 @@
 var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
 
 class SpeechRecognizer {
-  constructor(eventListener = () => {}) {
+  constructor(eventListener = () => {}, lang = 'de-De') {
     this.eventListener = eventListener;
     this.oldResults = [];
-    this.reset();
+    this.reset(lang);
   }
 
-  reset() {
+  reset(lang = 'de-De') {
     this.working = false;
     this.listening = false;
     this.error = 'none';
@@ -20,7 +20,7 @@ class SpeechRecognizer {
       this.recognition = new SpeechRecognition();
       this.recognition.continuous = true;
       this.recognition.interimResults = true;
-      this.recognition.lang = 'de-DE';
+      this.recognition.lang = lang;
       this.recognition.addEventListener('start', e => this.startListener(e))
       this.recognition.addEventListener('end', e => this.endListener(e))
       this.recognition.addEventListener('result', e => this.resultListener(e))

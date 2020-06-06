@@ -48,6 +48,57 @@ function escapeHtml(word) {
     .replace(/\r?\n/g, '&#8203;<br />&#8203;');
 }
 
+function lcs(stra, strb) {
+  const l = [];
+  for (let i = 0; i <= stra.length; i++) {
+    l[i] = [];
+    for (let j = 0; j <= strb.length; j++)
+      l[i][j] = [0, 0, 0];
+  }
+  for (let i = 0; i <= stra.length; i++) {
+    for (let j = 0; j <= strb.length; j++) {
+      if (i == 0 || j == 0) l[i][j] = [-1, -1, 0];
+      else if (stra[i - 1] == strb[j - 1]) l[i][j] = [i - 1, j - 1, l[i - 1][j - 1][2] + 1];
+      else {
+        if (l[i - 1][j][2] > l[i][j - 1][2])
+          l[i][j] = [i - 1, j, l[i - 1][j][2]];
+        else
+          l[i][j] = [i, j - 1, l[i][j - 1][2]];
+      }
+    }
+  }
+  let res = '';
+  let i = stra.length, j = strb.length;
+  let cur = l[i][j];
+  while (cur[2] > 0) {
+    if (cur[0] < i && cur[1] < j) res = stra[ cur[0] ] + res;
+    i = cur[0]; j = cur[1];
+    cur = l[i][j];
+  }
+  return res;
+}
+
+function cmpScore(stra, strb) {
+  if (stra == strb) return 1;
+  if (stra.length < strb.length)
+    [stra, strb] = [strb, stra];
+  if (stra.includes(strb)) return strb.length / stra.length;
+  const lcstr = lcs(stra, strb);
+  const fac = stra.includes(lcstr) ? (strb.includes(lcstr) ? 1 : 0.9) : (strb.includes(lcstr) ? 0.9 : 0.8);
+  return fac * lcstr.length / stra.length;
+}
+
+function splitResult(result) {
+  const regex = /[\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\xbf\xd7\xf7]+/gm;
+  const res = result.split(regex);
+  for (let i = res.length - 1; i >= 0; i--) {
+    res[i] = simplify(res[i]);
+    if (res[i] == '')
+      res.splice(i, 1);
+  }
+  return res;
+}
+
 class Teleprompter {
   constructor() {
     this.text = `Wikipedia (abbreviated as WP) is a multilingual online encyclopedia. The website
@@ -79,7 +130,7 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
     this.colorWarnIdx = -1;
     this.play = false;
     this.edit = false;
-    this.settings = ['play', 'restart', 'edit', 'lang', 'bg', 'fg', 'size', 'font', 'margin', 'mirrorv', 'mirrorh', 'clear'];
+    this.settings = ['play', 'restart', 'edit', 'lang', 'bg', 'fg', 'size', 'font', 'margin', 'mirrorv', 'mirrorh', 'showrec', 'clear'];
     this.langValues =
       [ ['Afrikaans',       ['af-ZA']],
         ['አማርኛ',           ['am-ET']],
@@ -183,6 +234,10 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
         ['हिन्दी',             ['hi-IN']],
         ['ภาษาไทย',         ['th-TH']]];
     this.panelOpened = 0;
+    this.showMatchIdx = -1;
+    this.speechPosition = 0;
+    this.currentRecording = [];
+    this.matchHistory = [];
     this.toDefaultSettings();
     this.applySettings();
     this.speechRec = null;
@@ -191,6 +246,34 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
       document.getElementById(`s_${this.settings[i]}`).addEventListener('click', () => this.settingsClick(this.settings[i]));
     }
     document.getElementById('disable_block').addEventListener('click', () => this.editFinishedClick());
+    document.getElementById('prev').addEventListener('click', () => this.showPrevious());
+    document.getElementById('next').addEventListener('click', () => this.showNext());
+    document.getElementById('last').addEventListener('click', () => this.showLast());
+  }
+
+  showPrevious() {
+    if (this.showMatchIdx == -1 && this.matchHistory.length > 0) {
+      this.showMatchIdx = this.matchHistory.length - 1;
+      this.applySettings();
+    } else if (this.showMatchIdx > 0) {
+      this.showMatchIdx--;
+      this.applySettings();
+    }
+  }
+
+  showNext() {
+    if (this.showMatchIdx + 1 == this.matchHistory.length) {
+      this.showMatchIdx = -1;
+      this.applySettings();
+    } else if (this.showMatchIdx + 1 < this.matchHistory.length) {
+      this.showMatchIdx++;
+      this.applySettings();
+    }
+  }
+
+  showLast() {
+    this.showMatchIdx = -1;
+    this.applySettings();
   }
 
   adaptText() {
@@ -251,12 +334,14 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
         this.edit = true;
       this.applySettings();
     } else if (setting == 'clear') {
+      this.stop();
       this.toFactorySettings();
       this.applySettings();
     } else if (typeof this[setting] === 'boolean') {
       this[setting] = !this[setting];
       this.applySettings();
     } else if (typeof this[setting] === 'number' || typeof this[setting] === 'string' || typeof this[setting] === 'object') {
+      this.pause();
       const position = document.getElementById(`s_${setting}`).getBoundingClientRect();
       let editElement = '';
       if (setting == 'lang') {
@@ -308,7 +393,9 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
   start() {
     if (this.speechRec !== null) this.speechRec.stop();
     this.play = true;
-    this.speechRec = new SpeechRecognizer((a, b, c) => this.speechResult(a, b, c));
+    this.speechPosition = 0;
+    this.currentRecording = [];
+    this.speechRec = new SpeechRecognizer((a, b, c) => this.speechResult(a, b, c), this.lang);
     this.speechRec.start();
   }
 
@@ -327,6 +414,63 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
     if (type == 'error') {
       this.addMessage('error', interimRes);
       if (this.speechRec !== null) this.speechRec.stop();
+      this.applySettings();
+    } else if (type == 'result') {
+      finalRes = splitResult(finalRes);
+      interimRes = splitResult(interimRes);
+      this.currentRecording = finalRes;
+      for (let i = 0; i < interimRes.length; i++)
+        this.currentRecording.push(interimRes[i]);
+      
+      let bestScore = -1, bestI = this.currentPosition;
+      for (let i = this.currentPosition - 3; i <= this.currentPosition + 3; i++) {
+        let score = -2;
+        for (let k = max(0, this.speechPosition - 3); k <= min(this.speechPosition + 3, this.currentRecording.length - 1); k++) {
+          if (i + k - this.speechPosition >= 0 && i + k - this.speechPosition < this.recText.length) {
+            if (score < 0) score = 0;
+            let addScore = cmpScore(this.currentRecording[k], this.recText[i + k - this.speechPosition].word);
+            if (addScore == 1) addScore *= 3;
+            score += addScore;
+          }
+        }
+        if (score > bestScore || (score == bestScore && Math.abs(this.currentPosition - i) < Math.abs(this.currentPosition - bestI))) {
+          bestScore = score;
+          bestI = i;
+        }
+      }
+      bestScore = -1; let bestFinalI = bestI;
+      for (let i = bestI - 3; i <= bestI + 3; i++) {
+        let score = -2;
+        for (let k = this.speechPosition; k < this.currentRecording.length; k++) {
+          if (i + k - this.speechPosition >= 0 && i + k - this.speechPosition < this.recText.length) {
+            if (score < 0) score = 0;
+            let addScore = cmpScore(this.currentRecording[k], this.recText[i + k - this.speechPosition].word);
+            if (addScore == 1) addScore *= 3;
+            score += addScore;
+          }
+        }
+        if (score > bestScore || (score == bestScore && Math.abs(bestI - i) < Math.abs(bestI - bestFinalI))) {
+          bestScore = score;
+          bestFinalI = i;
+        }
+      }
+      const posNewPosition = bestFinalI + this.currentRecording.length - this.speechPosition;
+      if (posNewPosition < this.currentPosition) {
+        if (posNewPosition < this.currentPosition - 1)
+          this.currentPosition = max(0, posNewPosition);
+      } else
+        this.currentPosition = min(this.recText.length - 1, posNewPosition);
+      this.speechPosition = this.currentRecording.length;
+      let match = [[], []];
+      let showBefore = min(posNewPosition, min(this.speechPosition, 15));
+      for (let i = -showBefore; i < 0; i++) {
+        if (posNewPosition + i >= 0 && posNewPosition < this.recText.length) {
+          match[0].push(this.recText[posNewPosition + i].word);
+          match[1].push(this.currentRecording[this.speechPosition + i]);
+        }
+      }
+      this.matchHistory.push(match);
+      
       this.applySettings();
     }
   }
@@ -410,6 +554,7 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
     this.margin = 100;
     this.mirrorv = false;
     this.mirrorh = false;
+    this.showrec = false;
   }
 
   toDefaultSettings() {
@@ -430,6 +575,8 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
       this.mirrorv = JSON.parse(localStorage.getItem('mirrorv'));
     if (localStorage.getItem('mirrorh') !== null)
       this.mirrorh = JSON.parse(localStorage.getItem('mirrorh'));
+    if (localStorage.getItem('showrec') !== null)
+      this.showrec = JSON.parse(localStorage.getItem('showrec'));
   }
 
   applySettings() {
@@ -441,6 +588,7 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
     localStorage.setItem('margin', JSON.stringify(this.margin));
     localStorage.setItem('mirrorv', JSON.stringify(this.mirrorv));
     localStorage.setItem('mirrorh', JSON.stringify(this.mirrorh));
+    localStorage.setItem('showrec', JSON.stringify(this.showrec));
     const bgDark = rgbToLum(...this.bg) < 0.5;
     const fgDark = rgbToLum(...this.fg) < 0.5;
     if (this.colorWarn) {
@@ -477,6 +625,9 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
       }
       document.getElementById(`s_${this.settings[i]}_img`).src = `icons/${icon}-${color}.svg`;
     }
+    document.getElementById('prev').src = `icons/previous-${iconDefault}.svg`;
+    document.getElementById('next').src = `icons/next-${iconDefault}.svg`;
+    document.getElementById('last').src = `icons/last-${iconDefault}.svg`;
     if (this.mirrorv && this.mirrorh)
       document.getElementById('play_div').style.transform = 'scale(-1, -1)';
     else if (this.mirrorv)
@@ -510,6 +661,55 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
     document.getElementById('play_div').style.paddingRight = `${this.margin}px`;
     document.getElementById('edit_text_div').style.paddingLeft = `${this.margin}px`;
     document.getElementById('edit_text_div').style.paddingRight = `${this.margin}px`;
+    if (this.showrec) {
+      document.getElementById('rec_text').style.display = 'flex';
+      document.getElementById('rec_text').style.backgroundColor = arrToColor(...this.bg, 0.8);
+      document.getElementById('rec_text').style.color = iconDefault;
+      let upperText = [];
+      let lowerText = [];
+      if (this.showMatchIdx >= 0 && this.showMatchIdx < this.matchHistory.length) {
+        [upperText, lowerText] = this.matchHistory[this.showMatchIdx];
+      } else {
+        let subtract = min(this.currentPosition, min(this.speechPosition, 15));
+        let startIdx = this.currentPosition - subtract;
+        let endIdx = min(this.recText.length, this.currentPosition + 10);
+        for (let i = startIdx; i < endIdx; i++)
+          upperText.push(this.recText[i].word);
+        startIdx = this.speechPosition - subtract;
+        endIdx = min(this.currentRecording.length, this.speechPosition + 10);
+        for (let i = startIdx; i < endIdx; i++)
+          lowerText.push(this.currentRecording[i]);
+      }
+      if (upperText.length > 0 && lowerText.length > 0) {
+        document.getElementById('disconnected_texts').style.display = 'none';
+        document.getElementById('connected_texts').style.display = 'inline';
+        let text = '';
+        for (let i = 0; i < max(upperText.length, lowerText.length); i++) {
+          let upper = '&nbsp;';
+          let lower = '&nbsp;';
+          if (i < upperText.length) upper = escapeHtml(upperText[i]);
+          if (i < lowerText.length) lower = escapeHtml(lowerText[i]);
+          let style_add = '';
+          if (i < upperText.length && i < lowerText.length) {
+            const score = cmpScore(upperText[i], lowerText[i]);
+            if (score > 0)
+              style_add = ` style="background-color:${arrToColor(0, 100, 0, 0.25 * score)};"`;
+          }
+          text += `<span class="word_match"${style_add}>${upper}<br />${lower}</span>`;
+        }
+        document.getElementById('connected_texts').innerHTML = text;
+      } else {
+        document.getElementById('disconnected_texts').style.display = 'inline';
+        document.getElementById('connected_texts').style.display = 'none';
+        let text = upperText.map(val => escapeHtml(val)).join(' ');
+        if (text == '') text = 'Waiting for you to start&hellip;';
+        document.getElementById('looking_for').innerHTML = text;
+        text = lowerText.map(val => escapeHtml(val)).join(' ');
+        if (text == '') text = 'Waiting for you to start&hellip;';
+        document.getElementById('recorded').innerHTML = text;
+      }
+    } else
+      document.getElementById('rec_text').style.display = 'none';
     if (this.edit) {
       document.getElementById('play_div').style.display = 'none';
       document.getElementById('edit_text_div').style.display = 'block';

@@ -49,6 +49,45 @@ html, body {
   transition-duration: 500ms;
 }
 
+#rec_text {
+  position: fixed;
+  left: 0em;
+  bottom: 0em;
+  width: 100%;
+  max-width: 100%;
+  overflow-y: auto;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.txt_cmp_header {
+  margin: 0.5em;
+  display: inline-block;
+  text-align: right;
+  line-height: 1.5;
+}
+
+.txt_cmp_content {
+  display: inline-block;
+  line-height: 1.5;
+}
+
+.txt_cmp_settings {
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  display: inline-block;
+  text-align: right;
+  flex-grow: 1;
+}
+
+.word_match {
+  margin-right: 0.3em;
+  display: inline-block;
+  border-radius: 0.15em;
+}
+
 #messages {
   margin-top: 2em;
 }
@@ -80,7 +119,7 @@ html, body {
   border-radius: 0.15em;
 }
 
-.s_item {
+.s_item, .txt_cmp_icon {
   opacity: 0.6;
   user-select: none;
   transition-property: opacity;
@@ -92,7 +131,7 @@ html, body {
   opacity: 1;
 }
 
-.s_item:hover {
+.s_item:hover, .txt_cmp_icon:hover {
   opacity: 1;
 }
 
@@ -107,7 +146,12 @@ html, body {
   align-items: center;
 }
 
-.s_icon {
+.s_img, .txt_cmp_icon {
+  width: 1.5em;
+  display: block;
+}
+
+.s_icon, .txt_cmp_icon {
   display: inline-block;
   padding: 0.2em;
   margin-right: 0.5em;
@@ -124,9 +168,4 @@ html, body {
   max-width: 11em;
   border-radius: 0.15em;
   color: white;
-}
-
-.s_img {
-  width: 1.5em;
-  display: block;
 }
