@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Teleprompter</title>
+  <meta name="Teleprompter" content="Teleprompter">
+  <meta name="author" content="Fabian Michel">
+
+  <link rel="shortcut icon" href="MFTriangles.ico">
+  <link rel="stylesheet" href="teleprompter.css">
+  <script src="SpeechRecognizer.js"></script>
+  <script src="Teleprompter.js"></script>
+  <script type="text/javascript">
+
+    function listener(type, argA, argB) {
+      if (type == 'result') {
+        console.log(argA + ' // ' + argA + argB);
+      }
+    }
+
+    function main() {
+      let prompter = new Teleprompter();
+      // let rec = new SpeechRecognizer(listener);
+      // rec.start();
+      // window.setTimeout(() => rec.stop(), 10000);
+    }
+
+  </script>
+</head>
+
+<body onLoad="main();">
+
+  <div id="disable_block"></div>
+
+  <div id="teleprompter">
+    <div id="settings_container"><div id="settings_inner_container">
+      <div id="settings">
+        <div id="s_play" class="s_item"><div class="s_flex">
+          <div class="s_icon" id="s_play_icon"><img src="icons/play-white.svg" class="s_img" id="s_play_img" /></div><span class="s_text" id="s_play_text">Start</span>
+        </div></div>
+        <div id="s_restart" class="s_item"><div class="s_flex">
+          <div class="s_icon" id="s_restart_icon"><img src="icons/restart-white.svg" class="s_img" id="s_restart_img" /></div><span class="s_text">Restart</span>
+        </div></div>
+        <div id="s_edit" class="s_item"><div class="s_flex">
+          <div class="s_icon" id="s_edit_icon"><img src="icons/edit-white.svg" class="s_img" id="s_edit_img" /></div><span class="s_text">Edit Text</span>
+        </div></div>
+        <div id="s_lang" class="s_item"><div class="s_flex">
+          <div class="s_icon" id="s_lang_icon"><img src="icons/lang-white.svg" class="s_img" id="s_lang_img" /></div><span class="s_text">Language</span>
+        </div></div>
+        <div id="s_bg" class="s_item"><div class="s_flex">
+          <div class="s_icon" id="s_bg_icon"><img src="icons/bg-white.svg" class="s_img" id="s_bg_img" /></div><span class="s_text">Background Color</span>
+        </div></div>
+        <div id="s_fg" class="s_item"><div class="s_flex">
+          <div class="s_icon" id="s_fg_icon"><img src="icons/fg-white.svg" class="s_img" id="s_fg_img" /></div><span class="s_text">Text Color</span>
+        </div></div>
+        <div id="s_size" class="s_item"><div class="s_flex">
+          <div class="s_icon" id="s_size_icon"><img src="icons/size-white.svg" class="s_img" id="s_size_img" /></div><span class="s_text">Text Size</span>
+        </div></div>
+        <div id="s_font" class="s_item"><div class="s_flex">
+          <div class="s_icon" id="s_font_icon"><img src="icons/font-white.svg" class="s_img" id="s_font_img" /></div><span class="s_text">Font</span>
+        </div></div>
+        <div id="s_margin" class="s_item"><div class="s_flex">
+          <div class="s_icon" id="s_margin_icon"><img src="icons/margin-white.svg" class="s_img" id="s_margin_img" /></div><span class="s_text">Margin</span>
+        </div></div>
+        <div id="s_mirrorv" class="s_item"><div class="s_flex">
+          <div class="s_icon" id="s_mirrorv_icon"><img src="icons/mirrorv-white.svg" class="s_img" id="s_mirrorv_img" /></div><span class="s_text">Mirror Vertically</span>
+        </div></div>
+        <div id="s_mirrorh" class="s_item"><div class="s_flex">
+          <div class="s_icon" id="s_mirrorh_icon"><img src="icons/mirrorh-white.svg" class="s_img" id="s_mirrorh_img" /></div><span class="s_text">Mirror Horizontally</span>
+        </div></div>
+        <div id="s_clear" class="s_item"><div class="s_flex">
+          <div class="s_icon" id="s_clear_icon"><img src="icons/clear-white.svg" class="s_img" id="s_clear_img" /></div><span class="s_text">Clear Settings</span>
+        </div></div>
+        <div id="messages">
+          <!--<div class="info"><div class="s_flex">
+            <div class="s_icon"><img src="icons/info-white.svg" class="s_img" /></div><span class="s_msg">This is an info. And it contains some text which is quite a bit longer... Just to see whether it will work</span>
+          </div></div>
+          <div class="warning"><div class="s_flex">
+            <div class="s_icon"><img src="icons/warning-white.svg" class="s_img" /></div><span class="s_msg">This is a warning.</span>
+          </div></div>
+          <div class="error"><div class="s_flex">
+            <div class="s_icon"><img src="icons/error-white.svg" class="s_img" /></div><span class="s_msg">This is an error.</span>
+          </div></div>-->
+        </div>
+      </div>
+    </div></div>
+
+    <div id="play_div"><span id="play_text"></span></div>
+    <div id="edit_text_div"><div id="text_editor_container"><textarea id="text_editor" cols="80" rows="50"></textarea></div></div>
+  </div>
+
+</body>
+</html>
