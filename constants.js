@@ -44,6 +44,24 @@ Germania für das Siedlungsgebiet der Germanen bekannt. Das ab dem 10. Jahrhunde
 Römische Reich, das aus vielen Herrschaftsgebieten bestand, war wie der 1815 ins Leben gerufene
 Deutsche Bund ein Vorläufer des späteren deutschen Nationalstaates.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$1 $2');
 
+const DEFAULT_TEXT_FR = `L’escalade, ou grimpe, parfois appelée varappe (désuet), est une pratique
+et un sport consistant à progresser le long d'une paroi pour atteindre le haut d'un relief ou d'une
+structure artificielle par un cheminement appelé voie, avec ou sans aide de matériel. Le terrain de
+pratique va des blocs de faible hauteur aux parois de plusieurs centaines de mètres, en passant par
+les murs d'escalade. Le pratiquant est couramment appelé « grimpeur ».
+
+L'escalade développe de nombreuses qualités physiques, comme la force musculaire, la souplesse,
+l'endurance musculaire, l'équilibre, de bonnes capacités psychomotrices et de planification. Elle
+sollicite particulièrement la musculature des bras, du tronc et des jambes.
+
+Cette discipline se développe progressivement en tant que sport à part entière dès la fin du xixe
+siècle dans la ruée des premiers alpinistes vers les grands sommets, avant de se démocratiser au
+siècle suivant, devenant populaire dès la fin des années 1970. Les premières compétitions
+officielles sont organisées en 1988 par l'Union internationale des associations d'alpinisme (UIAA).
+Chaque année est organisée une Coupe du monde de difficulté, de bloc et de vitesse, et tous les deux
+ans des championnats du monde, l'ensemble étant supervisé par la Fédération internationale
+d'escalade (IFSC).`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$1 $2');
+
 const LANGUAGE_VALUES =
   [ ['Afrikaans',       ['af-ZA']],
     ['አማርኛ',           ['am-ET']],

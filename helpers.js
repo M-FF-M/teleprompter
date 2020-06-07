@@ -189,8 +189,8 @@ function matchText(recText, currentPosition, currentRecording, speechPosition, c
       else if (Math.abs(fIdx - targetIdx) > 7 && fScore < 0.9) setnew = true;
       else if (Math.abs(fIdx - targetIdx) > 9 && fScore < 1) setnew = true;
       if (setnew) {
-        firstIdx(i, targetIdx);
-        firstScore(i, cmpScore(recText[targetIdx].word, currentRecording[i]));
+        firstIdx(i, max(0, min(targetIdx, recText.length - 1)));
+        firstScore(i, cmpScore(recText[max(0, min(targetIdx, recText.length - 1))].word, currentRecording[i]));
       }
       maxScore = max(maxScore, firstScore(i));
     }

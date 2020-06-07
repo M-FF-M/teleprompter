@@ -1,7 +1,7 @@
 
 class Teleprompter {
   constructor() {
-    this.text = DEFAULT_TEXT_DE;
+    this.text = DEFAULT_TEXT_EN;
     document.getElementById('text_editor').value = this.text;
     this.adaptText();
     this.msgCounter = 0;
@@ -332,6 +332,29 @@ class Teleprompter {
     localStorage.setItem('mirrorv', JSON.stringify(this.mirrorv));
     localStorage.setItem('mirrorh', JSON.stringify(this.mirrorh));
     localStorage.setItem('showrec', JSON.stringify(this.showrec));
+    if (!this.play && !this.edit) {
+      if (this.lang.search(/^en-(AU|CA|IN|KE|TZ|GH|NZ|NG|ZA|PH|GB|US)$/) != -1) {
+        if (this.text == DEFAULT_TEXT_DE || this.text == DEFAULT_TEXT_FR) {
+          this.text = DEFAULT_TEXT_EN;
+          document.getElementById('text_editor').value = this.text;
+          this.adaptText();
+        }
+      }
+      if (this.lang == 'de-DE') {
+        if (this.text == DEFAULT_TEXT_EN || this.text == DEFAULT_TEXT_FR) {
+          this.text = DEFAULT_TEXT_DE;
+          document.getElementById('text_editor').value = this.text;
+          this.adaptText();
+        }
+      }
+      if (this.lang == 'fr-FR') {
+        if (this.text == DEFAULT_TEXT_DE || this.text == DEFAULT_TEXT_EN) {
+          this.text = DEFAULT_TEXT_FR;
+          document.getElementById('text_editor').value = this.text;
+          this.adaptText();
+        }
+      }
+    }
     const bgDark = rgbToLum(...this.bg) < 0.5;
     const fgDark = rgbToLum(...this.fg) < 0.5;
     if (this.colorWarn) {
