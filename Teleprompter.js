@@ -1,128 +1,7 @@
 
-function rgbToLum(r, g, b) {
-  r /= 255; g /= 255; b /= 255;
-  return r * 0.2126 + g * 0.7152 + b * 0.0722;
-}
-
-function arrToColor(r, g, b, a) {
-  if (typeof a !== 'undefined')
-    return `rgba(${r}, ${g}, ${b}, ${a})`;
-  return `rgb(${r}, ${g}, ${b})`;
-}
-
-function classSet(className, properties, propval) {
-  const elems = document.getElementsByClassName(className);
-  for (let i = 0; i < elems.length; i++) {
-    if (typeof propval === 'string')
-      elems[i].style[properties] = propval;
-    else {
-      for (prop in properties) {
-        if (properties.hasOwnProperty(prop))
-          elems[i].style[prop] = properties[prop];
-      }
-    }
-  }
-}
-
-function max(a, b) {
-  return a > b ? a : b;
-}
-
-function min(a, b) {
-  return a > b ? b : a;
-}
-
-function simplify(word) {
-  word = word.toLowerCase();
-  word = word.replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
-  word = word.replace(/é/g, 'e').replace(/è/g, 'e').replace(/ê/g, 'e').replace(/á/g, 'a');
-  word = word.replace(/à/g, 'a').replace(/â/g, 'a').replace(/ô/g, 'o').replace(/î/g, 'i');
-  word = word.replace(/ù/g, 'u').replace(/û/g, 'u').replace(/ë/g, 'e').replace(/ï/g, 'i');
-  word = word.replace(/ç/g, 'c').replace(/œ/g, 'oe').replace(/æ/g, 'ae');
-  return word;
-}
-
-function escapeHtml(word) {
-  return word.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#039;').replace(/ /g, '&nbsp;')
-    .replace(/\r?\n/g, '&#8203;<br />&#8203;');
-}
-
-function lcs(stra, strb) {
-  const l = [];
-  for (let i = 0; i <= stra.length; i++) {
-    l[i] = [];
-    for (let j = 0; j <= strb.length; j++)
-      l[i][j] = [0, 0, 0];
-  }
-  for (let i = 0; i <= stra.length; i++) {
-    for (let j = 0; j <= strb.length; j++) {
-      if (i == 0 || j == 0) l[i][j] = [-1, -1, 0];
-      else if (stra[i - 1] == strb[j - 1]) l[i][j] = [i - 1, j - 1, l[i - 1][j - 1][2] + 1];
-      else {
-        if (l[i - 1][j][2] > l[i][j - 1][2])
-          l[i][j] = [i - 1, j, l[i - 1][j][2]];
-        else
-          l[i][j] = [i, j - 1, l[i][j - 1][2]];
-      }
-    }
-  }
-  let res = '';
-  let i = stra.length, j = strb.length;
-  let cur = l[i][j];
-  while (cur[2] > 0) {
-    if (cur[0] < i && cur[1] < j) res = stra[ cur[0] ] + res;
-    i = cur[0]; j = cur[1];
-    cur = l[i][j];
-  }
-  return res;
-}
-
-function cmpScore(stra, strb) {
-  if (stra == strb) return 1;
-  if (stra.length < strb.length)
-    [stra, strb] = [strb, stra];
-  if (stra.includes(strb)) return strb.length / stra.length;
-  const lcstr = lcs(stra, strb);
-  const fac = stra.includes(lcstr) ? (strb.includes(lcstr) ? 1 : 0.9) : (strb.includes(lcstr) ? 0.9 : 0.8);
-  return fac * lcstr.length / stra.length;
-}
-
-function splitResult(result) {
-  const regex = /[\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\xbf\xd7\xf7]+/gm;
-  const res = result.split(regex);
-  for (let i = res.length - 1; i >= 0; i--) {
-    res[i] = simplify(res[i]);
-    if (res[i] == '')
-      res.splice(i, 1);
-  }
-  return res;
-}
-
 class Teleprompter {
   constructor() {
-    this.text = `Wikipedia (abbreviated as WP) is a multilingual online encyclopedia. The website
-was created and is maintained as an open collaboration project by a community of volunteer
-editors, using a wiki-based editing system. It is the largest and most popular general reference
-work on the World Wide Web. It is also one of the 20 most popular websites ranked by Alexa, as
-of March 2020. It features exclusively free content and no commercial ads and is owned and
-supported by the Wikimedia Foundation, a non-profit organization funded primarily through
-donations.
-
-Wikipedia was launched on January 15, 2001, and was created by Jimmy Wales and Larry Sanger.
-Sanger coined its name as a portmanteau of the words "wiki" (Hawaiian for "quick") and
-"encyclopedia". Initially an English-language encyclopedia, versions of Wikipedia in other
-languages were quickly developed. With 6.1 million articles, the English Wikipedia is the
-largest of the more than 300 Wikipedia encyclopedias. Overall, Wikipedia comprises more than
-53 million articles attracting 1.5 billion unique visitors per month.
-
-In 2005, Nature published a peer review comparing 42 hard science articles from Encyclopædia
-Britannica and Wikipedia and found that Wikipedia's level of accuracy approached that of
-Britannica, although critics suggested that it might not have fared so well in a similar study
-of a random sampling of all articles or one focused on social science or contentious social
-issues. The following year, Time magazine stated that the open-door policy of allowing anyone to
-edit had made Wikipedia the biggest and possibly the best encyclopedia in the world, and was a
-testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$1 $2');
+    this.text = DEFAULT_TEXT_DE;
     document.getElementById('text_editor').value = this.text;
     this.adaptText();
     this.msgCounter = 0;
@@ -131,120 +10,19 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
     this.play = false;
     this.edit = false;
     this.settings = ['play', 'restart', 'edit', 'lang', 'bg', 'fg', 'size', 'font', 'margin', 'mirrorv', 'mirrorh', 'showrec', 'clear'];
-    this.langValues =
-      [ ['Afrikaans',       ['af-ZA']],
-        ['አማርኛ',           ['am-ET']],
-        ['Azərbaycanca',    ['az-AZ']],
-        ['বাংলা',            ['bn-BD', 'বাংলাদেশ'],
-                            ['bn-IN', 'ভারত']],
-        ['Bahasa Indonesia',['id-ID']],
-        ['Bahasa Melayu',   ['ms-MY']],
-        ['Català',          ['ca-ES']],
-        ['Čeština',         ['cs-CZ']],
-        ['Dansk',           ['da-DK']],
-        ['Deutsch',         ['de-DE']],
-        ['English',         ['en-AU', 'Australia'],
-                            ['en-CA', 'Canada'],
-                            ['en-IN', 'India'],
-                            ['en-KE', 'Kenya'],
-                            ['en-TZ', 'Tanzania'],
-                            ['en-GH', 'Ghana'],
-                            ['en-NZ', 'New Zealand'],
-                            ['en-NG', 'Nigeria'],
-                            ['en-ZA', 'South Africa'],
-                            ['en-PH', 'Philippines'],
-                            ['en-GB', 'United Kingdom'],
-                            ['en-US', 'United States']],
-        ['Español',         ['es-AR', 'Argentina'],
-                            ['es-BO', 'Bolivia'],
-                            ['es-CL', 'Chile'],
-                            ['es-CO', 'Colombia'],
-                            ['es-CR', 'Costa Rica'],
-                            ['es-EC', 'Ecuador'],
-                            ['es-SV', 'El Salvador'],
-                            ['es-ES', 'España'],
-                            ['es-US', 'Estados Unidos'],
-                            ['es-GT', 'Guatemala'],
-                            ['es-HN', 'Honduras'],
-                            ['es-MX', 'México'],
-                            ['es-NI', 'Nicaragua'],
-                            ['es-PA', 'Panamá'],
-                            ['es-PY', 'Paraguay'],
-                            ['es-PE', 'Perú'],
-                            ['es-PR', 'Puerto Rico'],
-                            ['es-DO', 'República Dominicana'],
-                            ['es-UY', 'Uruguay'],
-                            ['es-VE', 'Venezuela']],
-        ['Euskara',         ['eu-ES']],
-        ['Filipino',        ['fil-PH']],
-        ['Français',        ['fr-FR']],
-        ['Basa Jawa',       ['jv-ID']],
-        ['Galego',          ['gl-ES']],
-        ['ગુજરાતી',           ['gu-IN']],
-        ['Hrvatski',        ['hr-HR']],
-        ['IsiZulu',         ['zu-ZA']],
-        ['Íslenska',        ['is-IS']],
-        ['Italiano',        ['it-IT', 'Italia'],
-                            ['it-CH', 'Svizzera']],
-        ['ಕನ್ನಡ',           ['kn-IN']],
-        ['ភាសាខ្មែរ',          ['km-KH']],
-        ['Latviešu',        ['lv-LV']],
-        ['Lietuvių',        ['lt-LT']],
-        ['മലയാളം',        ['ml-IN']],
-        ['मराठी',            ['mr-IN']],
-        ['Magyar',          ['hu-HU']],
-        ['ລາວ',             ['lo-LA']],
-        ['Nederlands',      ['nl-NL']],
-        ['नेपाली भाषा',        ['ne-NP']],
-        ['Norsk bokmål',    ['nb-NO']],
-        ['Polski',          ['pl-PL']],
-        ['Português',       ['pt-BR', 'Brasil'],
-                            ['pt-PT', 'Portugal']],
-        ['Română',          ['ro-RO']],
-        ['සිංහල',           ['si-LK']],
-        ['Slovenščina',     ['sl-SI']],
-        ['Basa Sunda',      ['su-ID']],
-        ['Slovenčina',      ['sk-SK']],
-        ['Suomi',           ['fi-FI']],
-        ['Svenska',         ['sv-SE']],
-        ['Kiswahili',       ['sw-TZ', 'Tanzania'],
-                            ['sw-KE', 'Kenya']],
-        ['ქართული',        ['ka-GE']],
-        ['Հայերեն',          ['hy-AM']],
-        ['தமிழ்',           ['ta-IN', 'இந்தியா'],
-                            ['ta-SG', 'சிங்கப்பூர்'],
-                            ['ta-LK', 'இலங்கை'],
-                            ['ta-MY', 'மலேசியா']],
-        ['తెలుగు',           ['te-IN']],
-        ['Tiếng Việt',      ['vi-VN']],
-        ['Türkçe',          ['tr-TR']],
-        ['اُردُو',              ['ur-PK', 'پاکستان'],
-                            ['ur-IN', 'بھارت']],
-        ['Ελληνικά',        ['el-GR']],
-        ['български',       ['bg-BG']],
-        ['Pусский',         ['ru-RU']],
-        ['Српски',          ['sr-RS']],
-        ['Українська',      ['uk-UA']],
-        ['한국어',           ['ko-KR']],
-        ['中文',             ['cmn-Hans-CN', '普通话 (中国大陆)'],
-                            ['cmn-Hans-HK', '普通话 (香港)'],
-                            ['cmn-Hant-TW', '中文 (台灣)'],
-                            ['yue-Hant-HK', '粵語 (香港)']],
-        ['日本語',           ['ja-JP']],
-        ['हिन्दी',             ['hi-IN']],
-        ['ภาษาไทย',         ['th-TH']]];
+    this.langValues = LANGUAGE_VALUES;
     this.panelOpened = 0;
     this.showMatchIdx = -1;
     this.speechPosition = 0;
     this.currentRecording = [];
+    this.currentMatchArray = [];
     this.matchHistory = [];
     this.toDefaultSettings();
     this.applySettings();
     this.speechRec = null;
     document.getElementById('settings_container').addEventListener('mousemove', () => this.showPanel());
-    for (let i = 0; i < this.settings.length; i++) {
+    for (let i = 0; i < this.settings.length; i++)
       document.getElementById(`s_${this.settings[i]}`).addEventListener('click', () => this.settingsClick(this.settings[i]));
-    }
     document.getElementById('disable_block').addEventListener('click', () => this.editFinishedClick());
     document.getElementById('prev').addEventListener('click', () => this.showPrevious());
     document.getElementById('next').addEventListener('click', () => this.showNext());
@@ -386,6 +164,14 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
   wordClick(numWord) {
     if (this.play) {
       this.currentPosition = min(numWord, this.recText.length);
+      if (this.speechRec !== null) this.speechRec.reset(this.lang);
+      this.speechPosition = 0;
+      this.currentRecording = [];
+      this.currentMatchArray = [];
+      if (this.currentPosition >= this.recText.length)
+        this.stop();
+      else
+        this.speechRec.start();
       this.applySettings();
     }
   }
@@ -395,6 +181,7 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
     this.play = true;
     this.speechPosition = 0;
     this.currentRecording = [];
+    this.currentMatchArray = [];
     this.speechRec = new SpeechRecognizer((a, b, c) => this.speechResult(a, b, c), this.lang);
     this.speechRec.start();
   }
@@ -421,56 +208,12 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
       this.currentRecording = finalRes;
       for (let i = 0; i < interimRes.length; i++)
         this.currentRecording.push(interimRes[i]);
-      
-      let bestScore = -1, bestI = this.currentPosition;
-      for (let i = this.currentPosition - 3; i <= this.currentPosition + 3; i++) {
-        let score = -2;
-        for (let k = max(0, this.speechPosition - 3); k <= min(this.speechPosition + 3, this.currentRecording.length - 1); k++) {
-          if (i + k - this.speechPosition >= 0 && i + k - this.speechPosition < this.recText.length) {
-            if (score < 0) score = 0;
-            let addScore = cmpScore(this.currentRecording[k], this.recText[i + k - this.speechPosition].word);
-            if (addScore == 1) addScore *= 3;
-            score += addScore;
-          }
-        }
-        if (score > bestScore || (score == bestScore && Math.abs(this.currentPosition - i) < Math.abs(this.currentPosition - bestI))) {
-          bestScore = score;
-          bestI = i;
-        }
-      }
-      bestScore = -1; let bestFinalI = bestI;
-      for (let i = bestI - 3; i <= bestI + 3; i++) {
-        let score = -2;
-        for (let k = this.speechPosition; k < this.currentRecording.length; k++) {
-          if (i + k - this.speechPosition >= 0 && i + k - this.speechPosition < this.recText.length) {
-            if (score < 0) score = 0;
-            let addScore = cmpScore(this.currentRecording[k], this.recText[i + k - this.speechPosition].word);
-            if (addScore == 1) addScore *= 3;
-            score += addScore;
-          }
-        }
-        if (score > bestScore || (score == bestScore && Math.abs(bestI - i) < Math.abs(bestI - bestFinalI))) {
-          bestScore = score;
-          bestFinalI = i;
-        }
-      }
-      const posNewPosition = bestFinalI + this.currentRecording.length - this.speechPosition;
-      if (posNewPosition < this.currentPosition) {
-        if (posNewPosition < this.currentPosition - 1)
-          this.currentPosition = max(0, posNewPosition);
-      } else
-        this.currentPosition = min(this.recText.length - 1, posNewPosition);
-      this.speechPosition = this.currentRecording.length;
-      let match = [[], []];
-      let showBefore = min(posNewPosition, min(this.speechPosition, 15));
-      for (let i = -showBefore; i < 0; i++) {
-        if (posNewPosition + i >= 0 && posNewPosition < this.recText.length) {
-          match[0].push(this.recText[posNewPosition + i].word);
-          match[1].push(this.currentRecording[this.speechPosition + i]);
-        }
-      }
+      let match;
+      [this.currentPosition, this.speechPosition, this.currentMatchArray, match] =
+        matchText(this.recText, this.currentPosition, this.currentRecording, this.speechPosition, this.currentMatchArray);
       this.matchHistory.push(match);
-      
+      if (this.currentPosition >= this.recText.length)
+        this.stop();
       this.applySettings();
     }
   }
