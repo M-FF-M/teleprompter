@@ -613,7 +613,9 @@ testament to the vision of Jimmy Wales.`.replace(/([^\r\n])\r?\n([^\r\n])/gm, '$
         if (this.play) {
           icon = 'pause';
           document.getElementById('s_play_text').innerHTML = 'Pause';
-        } else
+        } else if (this.currentPosition > 0)
+          document.getElementById('s_play_text').innerHTML = 'Continue';
+        else
           document.getElementById('s_play_text').innerHTML = 'Start';
       }
       if (typeof this[this.settings[i]] === 'boolean') {
